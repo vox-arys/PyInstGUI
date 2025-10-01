@@ -5,8 +5,6 @@ import threading
 import os
 import sys
 
-# ---------------- Functions ----------------
-
 def browse_file():
     filename = filedialog.askopenfilename(
         filetypes=[("Python files", "*.py;*.pyw")],
@@ -33,28 +31,20 @@ def run_pyinstaller():
     if not file_path.get():
         messagebox.showerror("Error", "Please select a Python file first.")
         return
-
     cmd = ["pyinstaller"]
-
-    # General options
     if onefile_var.get(): cmd.append("--onefile")
     if windowed_var.get(): cmd.append("--windowed")
     if noconfirm_var.get(): cmd.append("--noconfirm")
     if clean_var.get(): cmd.append("--clean")
     if ascii_var.get(): cmd.append("--ascii")
-
-    # Paths
     if icon_path.get(): cmd.append(f"--icon={icon_path.get()}")
     if dist_path.get(): 
         cmd.append(f"--distpath={dist_path.get()}")
         final_dist = dist_path.get()
     else:
         final_dist = "dist"
-
     if work_path.get(): cmd.append(f"--workpath={work_path.get()}")
     if spec_path.get(): cmd.append(f"--specpath={spec_path.get()}")
-
-    # Advanced options
     if noupx_var.get(): cmd.append("--noupx")
     if upx_dir.get(): cmd.append(f"--upx-dir={upx_dir.get()}")
     if add_data.get(): cmd.append(f"--add-data={add_data.get()}")
@@ -65,14 +55,9 @@ def run_pyinstaller():
     if collect_data.get(): cmd.append(f"--collect-data={collect_data.get()}")
     if collect_binaries.get(): cmd.append(f"--collect-binaries={collect_binaries.get()}")
     if collect_all.get(): cmd.append(f"--collect-all={collect_all.get()}")
-
-    # Bootloader / Console
     if noconsole_var.get(): cmd.append("--noconsole")
     if debug_var.get(): cmd.append("--debug=all")
-
-    # Append target file
     cmd.append(file_path.get())
-
     output_box.delete(1.0, tk.END)
     output_box.insert(tk.END, "Running: " + " ".join(cmd) + "\n")
 
@@ -83,21 +68,19 @@ def run_pyinstaller():
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
-                creationflags=subprocess.CREATE_NO_WINDOW  # hide console
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
             for line in process.stdout:
                 output_box.insert(tk.END, line)
                 output_box.see(tk.END)
             process.wait()
 
-            # Delete the .spec file unless Keep Spec is checked
             if not keep_spec_var.get():
                 spec_file = os.path.splitext(os.path.basename(file_path.get()))[0] + ".spec"
                 spec_path_full = os.path.join(spec_path.get() if spec_path.get() else os.getcwd(), spec_file)
                 if os.path.exists(spec_path_full):
                     os.remove(spec_path_full)
 
-            # Open dist folder
             os.startfile(final_dist)
 
             messagebox.showinfo("Done", f"PyInstaller finished.\nOutput folder opened:\n{final_dist}")
@@ -106,10 +89,8 @@ def run_pyinstaller():
 
     threading.Thread(target=run, daemon=True).start()
 
-# ---------------- Tkinter Setup ----------------
-
 root = tk.Tk()
-root.title("PyInstGUI")
+root.title("PyInstaller GUI")
 root.geometry("850x790")
 
 file_path = tk.StringVar()
@@ -140,7 +121,6 @@ debug_var = tk.BooleanVar()
 frame = tk.Frame(root, padx=10, pady=10)
 frame.pack(fill="both", expand=True)
 
-# --- File and Icon ---
 tk.Label(frame, text="Python File:").grid(row=0, column=0, sticky="w")
 tk.Entry(frame, textvariable=file_path, width=50).grid(row=0, column=1)
 tk.Button(frame, text="Browse", command=browse_file).grid(row=0, column=2)
@@ -149,7 +129,6 @@ tk.Label(frame, text="Icon (optional):").grid(row=1, column=0, sticky="w")
 tk.Entry(frame, textvariable=icon_path, width=50).grid(row=1, column=1)
 tk.Button(frame, text="Browse", command=browse_icon).grid(row=1, column=2)
 
-# --- Paths ---
 tk.Label(frame, text="Dist path:").grid(row=2, column=0, sticky="w")
 tk.Entry(frame, textvariable=dist_path, width=50).grid(row=2, column=1)
 tk.Button(frame, text="Browse", command=lambda: browse_folder(dist_path)).grid(row=2, column=2)
@@ -162,7 +141,6 @@ tk.Label(frame, text="Spec path:").grid(row=4, column=0, sticky="w")
 tk.Entry(frame, textvariable=spec_path, width=50).grid(row=4, column=1)
 tk.Button(frame, text="Browse", command=lambda: browse_folder(spec_path)).grid(row=4, column=2)
 
-# --- Checkboxes ---
 tk.Checkbutton(frame, text="Onefile (--onefile)", variable=onefile_var).grid(row=5, column=0, sticky="w")
 tk.Checkbutton(frame, text="Windowed (--windowed)", variable=windowed_var).grid(row=5, column=1, sticky="w")
 tk.Checkbutton(frame, text="No Confirm (--noconfirm)", variable=noconfirm_var).grid(row=5, column=2, sticky="w")
@@ -173,7 +151,6 @@ tk.Checkbutton(frame, text="No Console (--noconsole)", variable=noconsole_var).g
 tk.Checkbutton(frame, text="Debug (--debug=all)", variable=debug_var).grid(row=7, column=1, sticky="w")
 tk.Checkbutton(frame, text="Keep Spec", variable=keep_spec_var).grid(row=7, column=2, sticky="w")
 
-# --- Extra options (text fields) ---
 def add_entry(label, var, row):
     tk.Label(frame, text=label).grid(row=row, column=0, sticky="w")
     tk.Entry(frame, textvariable=var, width=50).grid(row=row, column=1, columnspan=2, sticky="we")
@@ -188,10 +165,8 @@ add_entry("Collect Data:", collect_data, 14)
 add_entry("Collect Binaries:", collect_binaries, 15)
 add_entry("Collect All:", collect_all, 16)
 
-# --- Build button ---
 tk.Button(frame, text="Build EXE", command=run_pyinstaller, bg="lightgreen").grid(row=17, column=0, columnspan=3, pady=10)
 
-# --- Output box ---
 output_box = tk.Text(frame, height=20, width=100)
 output_box.grid(row=18, column=0, columnspan=3, pady=5)
 
